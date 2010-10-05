@@ -1,4 +1,3 @@
-#!/usr/bin/env perl5i
 use List::MoreUtils qw(indexes);
 
 func explode_corner($street, $i) {
