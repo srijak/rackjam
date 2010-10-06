@@ -10,29 +10,11 @@
   (read-lines f)
 )
 
-(defn getMap [xs]
-  (zipmap (take-nth 2 xs) (take-nth 2 (rest xs)))
-)
-
 (defn getTestCase [file]
-  (let [count (. Integer parseInt (first file))
-       [cur, others] (split-at count (rest file))
-       curInts (split #"\s+" (apply str (interpose " " cur)))]
-       [(map #(. Integer parseInt %) curInts), others]
-  )
+  (let [ [cur, others] (split-at (. Integer parseInt (first file)) (rest file))]
+       [(map #(. Integer parseInt %) (split #"\s+" (apply str (interpose " " cur)))), others] )
 )
 
-(defn getKeyGreaterThanN [m ks n]
-  (if (empty? ks)
-    nil
-    (let [curval (get m (first ks))]
-      (if (> curval n)
-          (first ks)
-          (getKeyGreaterThanN m (rest ks) n)
-      )
-    )
-  )
-)
 (defn getExplodable [m]
   (loop [k (keys m)]
     (if (empty? k)
@@ -42,45 +24,30 @@
         (recur (rest k)))))
 )
 
-(defn explode [m idx]
-  (if (not= idx nil)
-    (let [right (merge-with + { (+ idx 1) 1} m)
-        left  (merge-with + { (- idx 1) 1} right)
-        mid   (merge-with + {idx -2} left)]
-        mid)
-  )
-)
-
 (defn solve [currentCase]
   (loop [case currentCase i 0]
-    ;;(println "step: " i)
-    ;;(println "\tcase: " (into (sorted-map) case))
-    (let [toExplode (getExplodable case)]
-      (if (= toExplode nil)
+    (let [explodeIdx (getExplodable case)]
+      (if (= explodeIdx nil)
         i
-        (recur (explode case toExplode) (+ i 1)))
-    )
-  )
+        (recur (merge-with + case { (+ explodeIdx 1) 1, (- explodeIdx 1) 1, explodeIdx  -2}) (+ i 1)))))
 )
 
 (defn process [file testcases current]
   (if (> testcases current)
-    (let [[currentCase, others] (getTestCase file)
-          caseMap (getMap currentCase)]
-      (println (format "Case #%d: %d" current (solve caseMap)))
-      (process others testcases (+ 1 current))
-    ))
+    (let [[currentCase, others] (getTestCase file)]
+      (println (format "Case #%d: %d"
+                       (+ 1 current)
+                       (solve (zipmap (take-nth 2 currentCase) (take-nth 2 (rest currentCase))))))
+      (process others testcases (+ 1 current))))
 )
+
 (defn main [args] 
   (let [fileName (first (first args))
-        file (read-file fileName)
-        testcases (+ 1 (. Integer parseInt (first file)))]
-        (process (rest file) testcases 1)
-  )   
+        file (read-file fileName)]
+        (process (rest file) (. Integer parseInt (first file)) 0))   
 )
 
-
 (defn command-line? []                               
-  (.isAbsolute (java.io.File. *file*)))
+ (.isAbsolute (java.io.File. *file*)))
 
 (if (command-line?) (main [*command-line-args*] ))
