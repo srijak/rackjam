@@ -15,21 +15,19 @@
        [(map #(. Integer parseInt %) (split #"\s+" (apply str (interpose " " cur)))), others] )
 )
 
-(defn getExplodable [m]
-  (loop [k (keys m)]
-    (if (empty? k)
+(defn getExplodable [m ks]
+    (if (empty? ks)
       nil
-      (if (> (get m (first k)) 1)
-        (first k)
-        (recur (rest k)))))
+      (if (> (get m (first ks)) 1)
+        (first ks)
+        (recur m (rest ks))))
 )
 
-(defn solve [currentCase]
-  (loop [case currentCase i 0]
-    (let [explodeIdx (getExplodable case)]
+(defn solve [currentCase i]
+    (let [explodeIdx (getExplodable currentCase (keys currentCase))]
       (if (= explodeIdx nil)
         i
-        (recur (merge-with + case { (+ explodeIdx 1) 1, (- explodeIdx 1) 1, explodeIdx  -2}) (+ i 1)))))
+        (recur (merge-with + currentCase { (+ explodeIdx 1) 1, (- explodeIdx 1) 1, explodeIdx  -2}) (+ i 1))))
 )
 
 (defn process [file testcases current]
@@ -37,7 +35,7 @@
     (let [[currentCase, others] (getTestCase file)]
       (println (format "Case #%d: %d"
                        (+ 1 current)
-                       (solve (zipmap (take-nth 2 currentCase) (take-nth 2 (rest currentCase))))))
+                       (solve (zipmap (take-nth 2 currentCase) (take-nth 2 (rest currentCase))) 0 )))
       (process others testcases (+ 1 current))))
 )
 
